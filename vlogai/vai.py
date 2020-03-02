@@ -9,7 +9,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 
     This package requires the following packages:
-    1. Python 3.6 or later
+    1. Python 3.7 or later
     2. Pyverilog 1.2 or later
 """
 
@@ -19,7 +19,9 @@ import os
 import pprint
 import re
 import sys
+from functools import reduce
 import pyverilog.utils.version
+from pyverilog.utils.verror import DefinitionError
 from pyverilog.dataflow.dataflow_analyzer import VerilogDataflowAnalyzer
 from pyverilog.dataflow.dataflow import DFIntConst, DFOperator
 from pyverilog.vparser.parser import parse
@@ -92,8 +94,8 @@ def get_vai_files(vim_buf):
     """Get vai file list from vim buffer.
     """
 
-    vai_file_lines = grep_vim_buf(vim_buf, r'^\s*//\s*vai-files:')
-    vai_dir_lines = grep_vim_buf(vim_buf, r'^\s*//\s*vai-incdirs:')
+    vai_file_lines = grep_vim_buf(vim_buf, r'^\s*//\s*vai-files\s*:')
+    vai_dir_lines = grep_vim_buf(vim_buf, r'^\s*//\s*vai-incdirs\s*:')
     vai_vlog_files = []
     for l in vai_file_lines:
         vlog_files = l.split(':')[-1].replace(' ', '').split(',')
@@ -196,31 +198,46 @@ def get_instances(flist, vim_buf, inst_name=None):
 def generate_declares(instances, windent=0, pindent=0):
     """Generate wire and external port declaration for inst ports.
     """
-    
-    # use dict to remove duplicated name
-    wire_dict, port_dict = ({}, {})
+
+    # Find out the max length of wire/port signals
+    max_instp_len, max_slice_len = (0, 0)
     for inst in instances.values():
         len_list = [(len(v["instp"]), len(v["slice"])) for v in inst['port'].values()]
-        max_instp_len, max_slice_len = tuple(map(max, list(zip(*len_list))))
+        instp_len, slice_len = tuple(map(max, list(zip(*len_list))))
+        max_instp_len = instp_len if max_instp_len < instp_len else max_instp_len
+        max_slice_len = slice_len if max_slice_len < slice_len else max_slice_len
+    
+    # Get all instports for wire and port declarations. Dict is used to remove duplicated name.
+    wire_dict, port_dict = ({}, {})
+    for inst in instances.values():
         # wire declarations
-        wires = {v['instp']: f'wire {v["slice"]:{max_slice_len}} {v["instp"]:{max_instp_len}};'
+        wires = {v['instp']: (f'wire {v["slice"]:{max_slice_len}} {v["instp"]:{max_instp_len}};',
+                              0 if v['slice'] == '' else reduce(lambda x0, x1: x0 - x1, tuple(map(int, v['slice'][1:-1].split(':'))))
+                             )
                  for v in inst['port'].values() if v['type'] == 'W'}
-        wire_dict.update(wires)
-        # port declarations 
-        ports = {v['instp']:
-                 (f'{"input" if v["dir"] == "I" else ("output" if v["dir"] == "O" else "inout")} '
-                  f'{v["slice"]:{max_slice_len}} {v["instp"]}')
-                for v in inst['port'].values() if v['type'] == 'P'}
-        port_dict.update(ports)
+        # add new signal or update the duplicate signal using the one with wider bits
+        for k, v in wires.items():
+            if k not in wire_dict or (wire_dict[k][1] < v[1]):
+                wire_dict[k] = v
 
-    print(wire_dict)
+        # port declarations 
+        ports = {v['instp']: ((f'{"input " if v["dir"] == "I" else ("output" if v["dir"] == "O" else "inout ")} '
+                               f'{v["slice"]:{max_slice_len}} {v["instp"]}'),
+                              0 if v['slice'] == '' else reduce(lambda x0, x1: x0 - x1, tuple(map(int, v['slice'][1:-1].split(':'))))
+                             )
+                 for v in inst['port'].values() if v['type'] == 'P'}
+        # add new signal or update the duplicate signal using the one with wider bits
+        for k, v in ports.items():
+            if k not in port_dict or (port_dict[k][1] < v[1]):
+                port_dict[k] = v
+
     # wire declarations
     wire_declare_code = None
     if wire_dict:
         wire_indent = ' ' * windent
         wire_declare_code = f'{wire_indent}/* vai-auto-wire-begin */\n'
         wire_declare_code += f'{wire_indent}'
-        wire_declare_code += f'\n{wire_indent}'.join(wire_dict.values())
+        wire_declare_code += f'\n{wire_indent}'.join([x[0] for x in wire_dict.values()])
         wire_declare_code += f'\n{wire_indent}/* vai-auto-wire-end */'
 
     # port declarations 
@@ -229,7 +246,7 @@ def generate_declares(instances, windent=0, pindent=0):
         port_indent = ' ' * pindent
         port_declare_code = f'{port_indent} /* vai-auto-port-begin */\n'
         port_declare_code += f'{port_indent},'
-        port_declare_code += f'\n{port_indent},'.join(port_dict.values())
+        port_declare_code += f'\n{port_indent},'.join([x[0] for x in port_dict.values()])
         port_declare_code += f'\n{port_indent} /* vai-auto-port-end */'
 
     return (port_declare_code, len(port_dict), wire_declare_code, len(wire_dict))
@@ -246,19 +263,23 @@ class VlogAutoInst:
     def __init__(self, flist, top_mod):
         self.mod = top_mod 
         self.flist = flist
+        self.param_dict = None
+        self.port_dict = None
         self.analyzer = VerilogDataflowAnalyzer(flist, top_mod)
+        self.error = 0
         try:
             self.analyzer.generate()
+        except DefinitionError as de:
+            print(de)
+            self.error = 1
         except ParseError as pe:
             print(pe)
+            self.error = 2
 
-        # get params
-        self.param_dict = self._get_params()
-        # for k, v in self.param_dict.items():
-        #     print(f'type_k={type(k)}, type_v={type(v)}, type_v.value={type(v.value)}')
-        #     print(f'{k}={v}')
-        # get port_dict
-        self.port_dict = self._get_ports()
+        # get params and ports
+        if self.error:
+            self.param_dict = self._get_params()
+            self.port_dict = self._get_ports()
 
     def _get_param_value(self, param_list):
         param_dict = {}

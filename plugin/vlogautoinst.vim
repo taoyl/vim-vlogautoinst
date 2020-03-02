@@ -36,14 +36,12 @@ else:
     # parse current vlog file
     cur_buf = vim.current.buffer
     instances = vai.get_instances((cur_buf.name,), cur_buf)
-    print(instances)
 
     # delcare wire and external ports for all valid instances
     if args.declare:
         auto_dec_info = vai.find_declares_ln(cur_buf)
         ap_begin_ln, ap_end_ln, ap_indent = auto_dec_info.get('ap', (0, 0, 0))
         aw_begin_ln, aw_end_ln, aw_indent = auto_dec_info.get('aw', (0, 0, 0)) 
-        print(f'aw={aw_begin_ln}, {aw_end_ln}')
         if ap_begin_ln == 0 and aw_begin_ln == 0:
             vim.command(vimutils.echo('No auto declaration directives found'))
         else:
@@ -67,16 +65,24 @@ else:
     # instantiate vlog module
     else:
         flist = vai.get_vai_files(cur_buf)
-        print(flist)
         target_inst = instances.get(args.inst, None)
-        print(target_inst)
-        new_inst = vai.VlogAutoInst(flist, target_inst['mod'])
-        # update params and instports
-        regexp = args.regexp if args.regexp else None
-        new_inst.update_inst(target_inst['param'], target_inst['port'], regexp)
-        inst_code = new_inst.generate_inst(args.inst, target_inst['indent'])
-        vimutils.delete(cur_buf, target_inst['begin_ln'], target_inst['end_ln'])
-        vimutils.insert(cur_buf, inst_code, target_inst['begin_ln'])
+        if target_inst is None:
+            vim.command(vimutils.echo(f'Instance {args.inst} not found'))
+        else:
+            new_inst = vai.VlogAutoInst(flist, target_inst['mod'])
+            if new_inst.error == 1:
+                vim.command(vimutils.echo(f'Definition of module {target_inst["mod"]} not found in vlog files'))
+            elif new_inst.error == 2:
+                vim.command(vimutils.echo(f'Syntax errors found in vlog files'))
+            else:
+                # update params and instports
+                regexp = args.regexp if args.regexp else None
+                params = None if args.reset else target_inst['param']
+                ports = None if args.reset else target_inst['port']
+                new_inst.update_inst(param_dict=params, port_dict=ports, port_regexp=regexp)
+                inst_code = new_inst.generate_inst(args.inst, target_inst['indent'])
+                vimutils.delete(cur_buf, target_inst['begin_ln'], target_inst['end_ln'])
+                vimutils.insert(cur_buf, inst_code, target_inst['begin_ln'])
 
 EOP
 endfunction

@@ -9,7 +9,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 
     This package requires the following packages:
-    1. Python 3.6 or later
+    1. Python 3.7 or later
     2. Pyverilog 1.2 or later
 """
 
