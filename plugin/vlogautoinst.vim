@@ -1,25 +1,23 @@
 " VlogAutoInst: Verilog auto instantiation
 " Maintainer:   Yuliang Tao (nerotao@foxmail.com)
 " Date:         Fri, 28 Feb 2020 16:50:49
-" Version:      0.1
+" Version:      1.0
 "
 " Description:
-"
+" A vim plugin for verilog auto instantiation.
+" 
 " License:
 " Copyright (c) 2020, Yuliang Tao
 " All rights reserved.
 "
 
-
 " function! VlogAutoInst {{{
-function! VaiDefault(...)
+function! VaiAutoInst(...)
 python3 << EOP
 import os
 import sys
 import vim
-# The following line can be removed if vlogautoinst is installed.
-# sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append('/Users/taoyl/Github/myrepos/vim-vlogautoinst')
+sys.path.append('/Users/taoyl/Github/myrepos/vlogai')
 import vlogai.vai as vai
 import vlogai.vimutils as vimutils
 
@@ -79,8 +77,8 @@ else:
                 regexp = args.regexp if args.regexp else None
                 params = None if args.reset else target_inst['param']
                 ports = None if args.reset else target_inst['port']
-                new_inst.update_inst(param_dict=params, port_dict=ports, port_regexp=regexp)
-                inst_code = new_inst.generate_inst(args.inst, target_inst['indent'])
+                new_inst.update(param_dict=params, port_dict=ports, port_regexp=regexp)
+                inst_code = new_inst.generate_code(args.inst, target_inst['indent'])
                 vimutils.delete(cur_buf, target_inst['begin_ln'], target_inst['end_ln'])
                 vimutils.insert(cur_buf, inst_code, target_inst['begin_ln'])
 
@@ -90,6 +88,6 @@ endfunction
 
 " VAI command usage:
 " VAI [-i|--inst inst_name] [-r|--regexp m_pat s_pat] [--reset] [-d|--declare]'
-command! -nargs=+ -buffer VAI call VaiDefault(<f-args>)
+command! -nargs=+ -buffer VAI call VaiAutoInst(<f-args>)
 
 " vim:set sw=2 sts=2 fdm=marker:

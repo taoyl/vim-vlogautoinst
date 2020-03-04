@@ -1,0 +1,189 @@
+*vlogautoinst.txt*	Verilog Auto Instantiation       Last Change: 2020 Mar 4
+
+                                               *vlogautoinst* *vlogautoinst.vim*
+        _                      __                        __        _            __ 
+ _   __(_)___ ___       _   __/ /___  ____ _____ ___  __/ /_____  (_)___  _____/ /_
+| | / / / __ `__ \_____| | / / / __ \/ __ `/ __ `/ / / / __/ __ \/ / __ \/ ___/ __/
+| |/ / / / / / / /_____/ |/ / / /_/ / /_/ / /_/ / /_/ / /_/ /_/ / / / / (__  ) /_  
+|___/_/_/ /_/ /_/      |___/_/\____/\__, /\__,_/\__,_/\__/\____/_/_/ /_/____/\__/  
+                                   /____/                                          
+
+                                   By Yuliang Tao
+                                 nerotao@foxmail.com
+
+                                 Reference Manual ~
+
+VLOGAUTOINST - TABLE OF CONTENTS                              *vlogautoinst-toc*
+==============================================================================
+    1.  Introduction                     |vlogautoinst-introduction|
+    2.  Installation                     |vlogautoinst-installation|
+    3.  Usage                            |vlogautoinst-usage|
+    4.  License                          |vlogautoinst-license|
+
+VLOGAUTOINST                                                      *vlogautoinst*
+==============================================================================
+INTRODUCTION                          *vlogautoinst* *vlogautoinst-introduction*
+
+vim-vlogautoinst: A vim plugin for verilog auto instantiation.
+
+vim-vlogautoinst aims at providing the flexibility for digital IC designers to 
+easyliy instantiate verilog modules . It provides several features with one
+command plus options. It's much easy to use and remember.
+
+https://github.com/taoyl/vim-vlogautoinst
+
+------------------------------------------------------------------------------
+Features~
+
+  - Auto instantiation for verilog modules
+  - Support macros and paramaters with all verilog formats
+  - Update instantiations based on value changes of paramaters and macros
+  - Support directives for auto declaring wires and external ports with no 
+    deplicated declaraions
+  - Support instport changes using python regexp
+  - Support file and incdir search for finding module definitions
+
+==============================================================================
+INSTALLATION                                         *vlogautoinst-installation*
+
+------------------------------------------------------------------------------
+Requirements~
+
+vlogautoinst requires vlogai python package, you need to install vlogai python
+package before using this plugin. 
+
+You can install vlogai package with the following command:
+
+>
+pip install git+https://github.com/taoyl/vlogai.git
+<
+
+------------------------------------------------------------------------------
+Installation~
+  Installation can be done with plugin managers, e.g. vim-plug
+  (https://github.com/junegunn/vim-plug), Vundle.vim
+  (https://github.com/VundleVim/Vundle.vim), pathogen.vim 
+  (https://github.com/tpope/vim-pathogen) or if you're using Vim >= 8.0, you
+  can use the built-in plugin manager.
+
+  Add the following to your .vimrc, for *vim-plug* : 
+>
+    Plug 'taoyl/vim-vlogautoinst'
+<
+  And for *Vundle.vim* : 
+>
+    Plugin 'taoyl/vim-vlogautoinst'
+<
+  With pathogen, you need to run the following in your terminal:
+>
+    cd ~/.vim/bundle && \
+    git clone https://github.com/taoyl/vim-vlogautoinst.git
+<
+  With the package feature of Vim 8, it is a bit more involved. Run the
+  following in your terminal
+>
+    mkdir -p ~/.vim/pack/git-plugins/start
+    cd ~/.vim/pack/git-plugins/start
+    git clone https://github.com/taoyl/vim-vlogautoinst.git
+<
+  Then, add this to your ~/.vimrc:
+>
+    packloadall
+    silent! helptags ALL
+<
+
+------------------------------------------------------------------------------
+Feedback~
+   If you find problems with vim-vlogautoinst, or if you have questions, remarks,
+   or ideas about it, please create a ticket on
+   https://github.com/taoyl/vim-vlogautoinst
+
+
+==============================================================================
+USGAE                                                       *vlogautoinst-usgae*
+
+------------------------------------------------------------------------------
+Command usage~
+
+>
+usage: VAI [-i|--inst inst_name] [-r|--regexp m_pat s_pat][--reset] [-d|--declare]
+Verilog Auto Instantiation
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INST, --inst INST  Specify instantiation name
+  -d, --declare         Declare instport as wires and external port
+  -r REGEXP REGEXP, --regexp REGEXP REGEXP
+                        Change instport naming using python regexp
+  --reset               Reset parameter value and instport name to default
+<
+
+------------------------------------------------------------------------------
+Include verilog design file~
+
+To include verilog design files for instantiation, you have two ways:
+    1. Include vlog files
+>
+// vai-files: design1.v, design2.v
+<
+
+    2. Include directories containing vlog files
+>
+// vai-incdirs: dir1, dir2
+<
+
+------------------------------------------------------------------------------
+Directives~
+
+The following directives are supported to automatically instantiate module and
+declare internal wires and external ports.
+
+    1. Auto instantiation
+>
+   /* vai-auto-inst */
+<
+This directive must be put behind the instance name, as bellows
+>
+    my_mod u_my_mod (/* vai-auto-inst */
+    );
+<
+
+    2. Auto external port declarasions 
+>
+    /* vai-auto-port-begin */
+    /* vai-auto-port-end */
+<
+
+    3. Auto internal wire declarasions 
+>
+    /* vai-auto-wire-begin */
+    /* vai-auto-wire-end */
+<
+
+
+==============================================================================
+LICENSE                                                       *vloginst-license*
+
+Copyright (C) 2020, Yuliang Tao
+
+All rights reserved.
+
+The source code of this program is made available under the terms of the GNU
+General Public License version 3 (GNU GPL V3) as published by the Free
+Software Foundation.
+
+Binary versions of this program provided by Univention to you as well as other
+copyrighted, protected or trademarked materials like Logos, graphics, fonts,
+specific documentations and configurations, cryptographic keys etc. are
+subject to a license agreement between you and Univention and not subject to
+the GNU GPL V3.
+
+In the case you use this program under the terms of the GNU GPL V3, the
+program is provided in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with 
+this file. If not, see <http://www.gnu.org/licenses/>.
+
+vim:tw=78:ts=2:sw=2:expandtab:ft=help:norl:
