@@ -17,7 +17,6 @@ python3 << EOP
 import os
 import sys
 import vim
-#sys.path.append('/Users/taoyl/Github/myrepos/vlogai')
 import vlogai.vai as vai
 import vlogai.vimutils as vimutils
 
