@@ -33,8 +33,10 @@ else:
     # parse current vlog file
     cur_buf = vim.current.buffer
     instances = vai.get_instances((cur_buf.name,), cur_buf)
-    if not instances:
+    if instances is None:
         vim.command(vimutils.echo('Syntax errors found in current file', severity='Error'))
+    elif not instances:
+        vim.command(vimutils.echo('No vai-auto instances found in current file'))
     else:
         # delcare wire and external ports for all valid instances
         if args.declare:
