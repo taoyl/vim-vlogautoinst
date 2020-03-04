@@ -126,7 +126,7 @@ To include verilog design files for instantiation, the following directives are
 supported after the endmodule:
     1. Include vlog files
 >
-    // vai-files: design1.v, design2.v
+    // vai-incfiles: design1.v, design2.v
 <
 
     2. Include directories containing vlog files
