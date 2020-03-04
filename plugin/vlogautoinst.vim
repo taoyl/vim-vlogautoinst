@@ -17,7 +17,7 @@ python3 << EOP
 import os
 import sys
 import vim
-sys.path.append('/Users/taoyl/Github/myrepos/vlogai')
+#sys.path.append('/Users/taoyl/Github/myrepos/vlogai')
 import vlogai.vai as vai
 import vlogai.vimutils as vimutils
 
@@ -43,21 +43,36 @@ else:
         if ap_begin_ln == 0 and aw_begin_ln == 0:
             vim.command(vimutils.echo('No auto declaration directives found'))
         else:
-            code_info = vai.generate_declares(instances, pindent=ap_indent, windent=aw_indent)
+            # If auto-port declaration is before all other ports, no precomma
+            precomma = False if (list(instances.values())[0]['parent_port_ln'][0] > ap_begin_ln) \
+                       else True
+            code_info = vai.generate_declares(instances, pindent=ap_indent, windent=aw_indent,
+                                              precomma=precomma)
             port_dec_code, pn, wire_dec_code, wn = code_info
-            old_ap_num = 0
+            ln_change = 0
             if port_dec_code is not None:
                 # delete the old port declares and insert new ones
                 vimutils.delete(cur_buf, ap_begin_ln, ap_end_ln)
-                old_ap_num = ap_end_ln - 1 - ap_begin_ln
                 vimutils.insert(cur_buf, port_dec_code, ap_begin_ln)
+                # line number changes
+                ln_change = pn - (ap_end_ln - 1 - ap_begin_ln)
+            elif not args.keep and ap_begin_ln + 1 != ap_end_ln:
+                # clear the old port declares
+                vimutils.delete(cur_buf, ap_begin_ln + 1, ap_end_ln - 1)
+                # line number changes
+                ln_change = 0 - (ap_end_ln - 1 - ap_begin_ln)
+                
+            # update wire declare line number
+            aw_begin_ln += ln_change
+            aw_end_ln += ln_change
             if wire_dec_code is not None:
                 # delete the old wire declares and insert new ones
-                # update wire declare line number
-                aw_begin_ln += (pn - old_ap_num)
-                aw_end_ln += (pn - old_ap_num)
                 vimutils.delete(cur_buf, aw_begin_ln, aw_end_ln)
                 vimutils.insert(cur_buf, wire_dec_code, aw_begin_ln)
+            elif not args.keep and aw_begin_ln + 1 != aw_end_ln:
+                # clear the old wire declares
+                vimutils.delete(cur_buf, aw_begin_ln + 1, aw_end_ln - 1)
+                
             if wire_dec_code is None and port_dec_code is None:
                 vim.command(vimutils.echo('No instports found'))
     # instantiate vlog module
@@ -69,7 +84,8 @@ else:
         else:
             new_inst = vai.VlogAutoInst(flist, target_inst['mod'])
             if new_inst.error == 1:
-                vim.command(vimutils.echo(f'Definition of module {target_inst["mod"]} not found in vlog files'))
+                vim.command(vimutils.echo((f'Definition of module {target_inst["mod"]} not found'
+                                           ' in vlog files')))
             elif new_inst.error == 2:
                 vim.command(vimutils.echo(f'Syntax errors found in vlog files'))
             else:

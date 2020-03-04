@@ -46,4 +46,4 @@ pip install git+https://github.com/taoyl/vlogai.git
 ```
 
 # Usage
-You can check the usgae of VAI command using ```:VAI -h``` or ```:help vim-vlogautoinst```
+You can check the usgae of VAI command using ```:VAI -h``` or ```:help vlogautoinst.txt```
