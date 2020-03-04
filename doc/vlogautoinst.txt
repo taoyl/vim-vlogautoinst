@@ -1,17 +1,17 @@
-*vlogautoinst.txt*	Verilog Auto Instantiation       Last Change: 2020 Mar 4
+*vlogautoinst.txt*	Verilog Auto Instantiation           Last Change: 2020 Mar 4
 
                                                *vlogautoinst* *vlogautoinst.vim*
-        _                      __                        __        _            __ 
- _   __(_)___ ___       _   __/ /___  ____ _____ ___  __/ /_____  (_)___  _____/ /_
-| | / / / __ `__ \_____| | / / / __ \/ __ `/ __ `/ / / / __/ __ \/ / __ \/ ___/ __/
-| |/ / / / / / / /_____/ |/ / / /_/ / /_/ / /_/ / /_/ / /_/ /_/ / / / / (__  ) /_  
-|___/_/_/ /_/ /_/      |___/_/\____/\__, /\__,_/\__,_/\__/\____/_/_/ /_/____/\__/  
-                                   /____/                                          
+                  __                        __        _            __ 
+           _   __/ /___  ____ _____ ___  __/ /_____  (_)___  _____/ /_
+          | | / / / __ \/ __ `/ __ `/ / / / __/ __ \/ / __ \/ ___/ __/
+          | |/ / / /_/ / /_/ / /_/ / /_/ / /_/ /_/ / / / / (__  ) /_  
+          |___/_/\____/\__, /\__,_/\__,_/\__/\____/_/_/ /_/____/\__/  
+                      /____/                                          
 
-                                   By Yuliang Tao
-                                 nerotao@foxmail.com
+                                 By Yuliang Tao
+                               nerotao@foxmail.com
 
-                                 Reference Manual ~
+                                Reference Manual ~
 
 VLOGAUTOINST - TABLE OF CONTENTS                              *vlogautoinst-toc*
 ==============================================================================
@@ -115,48 +115,51 @@ optional arguments:
   -r REGEXP REGEXP, --regexp REGEXP REGEXP
                         Change instport naming using python regexp
   --reset               Reset parameter value and instport name to default
+  --keep                Keep the old auto declarasions even if no corresponding
+                        instports are found.
 <
 
 ------------------------------------------------------------------------------
-Include verilog design file~
+Include direvtives~
 
-To include verilog design files for instantiation, you have two ways:
+To include verilog design files for instantiation, the following directives are
+supported after the endmodule:
     1. Include vlog files
 >
-// vai-files: design1.v, design2.v
+    // vai-files: design1.v, design2.v
 <
 
     2. Include directories containing vlog files
 >
-// vai-incdirs: dir1, dir2
+    // vai-incdirs: dir1, dir2
 <
 
 ------------------------------------------------------------------------------
-Directives~
+Auto directives~
 
 The following directives are supported to automatically instantiate module and
 declare internal wires and external ports.
 
     1. Auto instantiation
 >
-   /* vai-auto-inst */
+   /* vai-autoinst */
 <
 This directive must be put behind the instance name, as bellows
 >
-    my_mod u_my_mod (/* vai-auto-inst */
+    my_mod u_my_mod (/* vai-autoinst */
     );
 <
 
-    2. Auto external port declarasions 
+    2. Auto declarasions for external ports
 >
-    /* vai-auto-port-begin */
-    /* vai-auto-port-end */
+    /* vai-autoport-begin */
+    /* vai-autoport-end */
 <
 
-    3. Auto internal wire declarasions 
+    3. Auto declarasions for internal wires
 >
-    /* vai-auto-wire-begin */
-    /* vai-auto-wire-end */
+    /* vai-autowire-begin */
+    /* vai-autowire-end */
 <
 
 
