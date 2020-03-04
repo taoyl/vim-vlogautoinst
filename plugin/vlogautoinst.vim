@@ -107,6 +107,7 @@ endfunction
 
 " VAI command usage:
 " VAI [-i|--inst inst_name] [-r|--regexp m_pat s_pat] [--reset] [-d|--declare]'
-command! -nargs=+ -buffer VAI call VaiAutoInst(<f-args>)
+" Must save the current buffer before calling VaiAutoInst, otherwise vim.current.buffer is not valid.
+command! -nargs=+ -buffer VAI write | call VaiAutoInst(<f-args>)
 
 " vim:set sw=2 sts=2 fdm=marker:
