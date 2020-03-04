@@ -55,7 +55,7 @@ package before using this plugin.
 You can install vlogai package with the following command:
 
 >
-pip install git+https://github.com/taoyl/vlogai.git
+    pip install git+https://github.com/taoyl/vlogai.git
 <
 
 ------------------------------------------------------------------------------
