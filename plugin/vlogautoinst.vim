@@ -34,7 +34,7 @@ else:
     # parse current vlog file
     cur_buf = vim.current.buffer
     instances = vai.get_instances((cur_buf.name,), cur_buf)
-    if instances is None:
+    if not instances:
         vim.command(vimutils.echo('Syntax errors found in current file', severity='Error'))
     else:
         # delcare wire and external ports for all valid instances
