@@ -48,7 +48,7 @@ else:
             else:
                 # If auto-port declaration is before all other ports, no precomma
                 min_ln = list(instances.values())[0]['parent_port_ln'][0]
-                precomma = False if (min_ln > ap_begin_ln) else True
+                precomma = False if (min_ln == 0) or (min_ln > ap_begin_ln) else True
                 code_info = vai.generate_declares(instances, pindent=ap_indent, windent=aw_indent,
                                                 precomma=precomma)
                 port_dec_code, pn, wire_dec_code, wn = code_info
