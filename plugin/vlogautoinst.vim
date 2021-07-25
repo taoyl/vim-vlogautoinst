@@ -1,13 +1,13 @@
 " VlogAutoInst: Verilog auto instantiation
 " Maintainer:   Yuliang Tao (nerotao@foxmail.com)
 " Date:         Fri, 28 Feb 2020 16:50:49
-" Version:      1.0
+" Version:      1.1
 "
 " Description:
 " A vim plugin for verilog auto instantiation.
 " 
 " License:
-" Copyright (c) 2020, Yuliang Tao
+" Copyright (c) 2020-2021, Yuliang Tao
 " All rights reserved.
 "
 
@@ -80,7 +80,8 @@ else:
                     vim.command(vimutils.echo('No instports found'))
         # instantiate vlog module
         else:
-            flist = vai.get_vai_files(cur_buf)
+            flist = vai.get_vai_files(cur_buf, parent=cur_buf_path)
+            if_flist = vai.get_vai_if_files(cur_buf, parent=cur_buf_path)
             target_inst = instances.get(args.inst, None)
             if target_inst is None:
                 vim.command(vimutils.echo(f'Instance {args.inst} not found'))
@@ -92,6 +93,9 @@ else:
                 elif new_inst.error == 2:
                     vim.command(vimutils.echo(f'Syntax errors found in vlog files'))
                 else:
+                    # update inst port using interface
+                    if_defs = vai.parse_sv_interface(if_flist)
+                    vai.expand_inst_ports(target_inst, if_defs, new_inst.port_dict)
                     # update params and instports
                     regexp = args.regexp if args.regexp else None
                     params = None if args.reset else target_inst['param']
